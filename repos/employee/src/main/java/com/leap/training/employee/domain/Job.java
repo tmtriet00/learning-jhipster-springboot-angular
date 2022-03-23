@@ -12,7 +12,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
  * A Job.
  */
 @Entity
-@Table(name = "job")
+@Table(name = "jobs")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Job implements Serializable {
 
@@ -35,7 +35,8 @@ public class Job implements Serializable {
 
     @OneToMany(mappedBy = "job")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @JsonIgnoreProperties(value = { "subEmployees", "managedDepartments", "job", "manager", "department" }, allowSetters = true)
+    @JsonIgnoreProperties(value = { "subEmployees", "managedDepartments", "job", "manager",
+            "department" }, allowSetters = true)
     private Set<Employee> employees = new HashSet<>();
 
     @OneToMany(mappedBy = "job")
@@ -159,7 +160,8 @@ public class Job implements Serializable {
         return this;
     }
 
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
+    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and
+    // setters here
 
     @Override
     public boolean equals(Object o) {
@@ -174,7 +176,8 @@ public class Job implements Serializable {
 
     @Override
     public int hashCode() {
-        // see https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
+        // see
+        // https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
         return getClass().hashCode();
     }
 
@@ -182,10 +185,10 @@ public class Job implements Serializable {
     @Override
     public String toString() {
         return "Job{" +
-            "jobId=" + getJobId() +
-            ", jobTitle='" + getJobTitle() + "'" +
-            ", minSalary=" + getMinSalary() +
-            ", maxSalary=" + getMaxSalary() +
-            "}";
+                "jobId=" + getJobId() +
+                ", jobTitle='" + getJobTitle() + "'" +
+                ", minSalary=" + getMinSalary() +
+                ", maxSalary=" + getMaxSalary() +
+                "}";
     }
 }

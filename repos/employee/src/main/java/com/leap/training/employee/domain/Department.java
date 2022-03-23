@@ -12,7 +12,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
  * A Department.
  */
 @Entity
-@Table(name = "department")
+@Table(name = "departments")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Department implements Serializable {
 
@@ -29,7 +29,8 @@ public class Department implements Serializable {
 
     @OneToMany(mappedBy = "department")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @JsonIgnoreProperties(value = { "subEmployees", "managedDepartments", "job", "manager", "department" }, allowSetters = true)
+    @JsonIgnoreProperties(value = { "subEmployees", "managedDepartments", "job", "manager",
+            "department" }, allowSetters = true)
     private Set<Employee> employees = new HashSet<>();
 
     @OneToMany(mappedBy = "department")
@@ -38,7 +39,8 @@ public class Department implements Serializable {
     private Set<JobHistory> jobHistories = new HashSet<>();
 
     @ManyToOne
-    @JsonIgnoreProperties(value = { "subEmployees", "managedDepartments", "job", "manager", "department" }, allowSetters = true)
+    @JsonIgnoreProperties(value = { "subEmployees", "managedDepartments", "job", "manager",
+            "department" }, allowSetters = true)
     private Employee manager;
 
     @ManyToOne
@@ -161,7 +163,8 @@ public class Department implements Serializable {
         return this;
     }
 
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
+    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and
+    // setters here
 
     @Override
     public boolean equals(Object o) {
@@ -176,7 +179,8 @@ public class Department implements Serializable {
 
     @Override
     public int hashCode() {
-        // see https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
+        // see
+        // https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
         return getClass().hashCode();
     }
 
@@ -184,8 +188,8 @@ public class Department implements Serializable {
     @Override
     public String toString() {
         return "Department{" +
-            "departmentId=" + getDepartmentId() +
-            ", departmentName='" + getDepartmentName() + "'" +
-            "}";
+                "departmentId=" + getDepartmentId() +
+                ", departmentName='" + getDepartmentName() + "'" +
+                "}";
     }
 }

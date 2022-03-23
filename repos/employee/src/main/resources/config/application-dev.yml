@@ -47,9 +47,9 @@ spring:
       # it can be set to any label, branch or commit of the configuration source Git repository
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:oracle:thin:@localhost:1521:xe
-    username: system
-    password: oracle
+    url: jdbc:oracle:thin:@10.30.82.12:1521:xe
+    username: hr
+    password: hr
     hikari:
       poolName: Hikari
       auto-commit: false

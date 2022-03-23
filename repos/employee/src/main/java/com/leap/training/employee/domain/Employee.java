@@ -13,7 +13,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
  * A Employee.
  */
 @Entity
-@Table(name = "employee")
+@Table(name = "employees")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Employee implements Serializable {
 
@@ -48,7 +48,8 @@ public class Employee implements Serializable {
 
     @OneToMany(mappedBy = "manager")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @JsonIgnoreProperties(value = { "subEmployees", "managedDepartments", "job", "manager", "department" }, allowSetters = true)
+    @JsonIgnoreProperties(value = { "subEmployees", "managedDepartments", "job", "manager",
+            "department" }, allowSetters = true)
     private Set<Employee> subEmployees = new HashSet<>();
 
     @OneToMany(mappedBy = "manager")
@@ -57,14 +58,18 @@ public class Employee implements Serializable {
     private Set<Department> managedDepartments = new HashSet<>();
 
     @ManyToOne
+    @JoinColumn(name = "job_id")
     @JsonIgnoreProperties(value = { "employees", "jobHistories" }, allowSetters = true)
     private Job job;
 
     @ManyToOne
-    @JsonIgnoreProperties(value = { "subEmployees", "managedDepartments", "job", "manager", "department" }, allowSetters = true)
+    @JoinColumn(name = "manager_id", referencedColumnName = "employee_id")
+    @JsonIgnoreProperties(value = { "subEmployees", "managedDepartments", "job", "manager",
+            "department" }, allowSetters = true)
     private Employee manager;
 
     @ManyToOne
+    @JoinColumn(name = "department_id")
     @JsonIgnoreProperties(value = { "employees", "jobHistories", "manager", "location" }, allowSetters = true)
     private Department department;
 
@@ -275,7 +280,8 @@ public class Employee implements Serializable {
         return this;
     }
 
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
+    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and
+    // setters here
 
     @Override
     public boolean equals(Object o) {
@@ -290,7 +296,8 @@ public class Employee implements Serializable {
 
     @Override
     public int hashCode() {
-        // see https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
+        // see
+        // https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
         return getClass().hashCode();
     }
 
@@ -298,14 +305,14 @@ public class Employee implements Serializable {
     @Override
     public String toString() {
         return "Employee{" +
-            "employeeId=" + getEmployeeId() +
-            ", firstName='" + getFirstName() + "'" +
-            ", lastName='" + getLastName() + "'" +
-            ", email='" + getEmail() + "'" +
-            ", phoneNumber='" + getPhoneNumber() + "'" +
-            ", hireDate='" + getHireDate() + "'" +
-            ", salary=" + getSalary() +
-            ", commissionPct=" + getCommissionPct() +
-            "}";
+                "employeeId=" + getEmployeeId() +
+                ", firstName='" + getFirstName() + "'" +
+                ", lastName='" + getLastName() + "'" +
+                ", email='" + getEmail() + "'" +
+                ", phoneNumber='" + getPhoneNumber() + "'" +
+                ", hireDate='" + getHireDate() + "'" +
+                ", salary=" + getSalary() +
+                ", commissionPct=" + getCommissionPct() +
+                "}";
     }
 }

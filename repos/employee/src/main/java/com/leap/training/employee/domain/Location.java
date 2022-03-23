@@ -42,6 +42,7 @@ public class Location implements Serializable {
     private Set<Department> departments = new HashSet<>();
 
     @ManyToOne
+    @JoinColumn(name = "country_id")
     @JsonIgnoreProperties(value = { "locations", "region" }, allowSetters = true)
     private Country country;
 

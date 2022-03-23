@@ -3,7 +3,7 @@
   "fields": [
     {
       "fieldName": "countryId",
-      "fieldType": "Long",
+      "fieldType": "String",
       "options": {
         "id": true
       }

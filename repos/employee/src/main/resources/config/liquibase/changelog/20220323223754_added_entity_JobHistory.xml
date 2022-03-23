@@ -23,7 +23,7 @@
             <column name="end_date" type="bigint">
                 <constraints nullable="true" />
             </column>
-            <column name="job_job_id" type="bigint">
+            <column name="job_job_id" type="varchar(255)">
                 <constraints nullable="true" />
             </column>
             <column name="department_department_id" type="bigint">

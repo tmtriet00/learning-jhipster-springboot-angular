@@ -11,11 +11,11 @@ class JobTest {
     void equalsVerifier() throws Exception {
         TestUtil.equalsVerifier(Job.class);
         Job job1 = new Job();
-        job1.setJobId(1L);
+        job1.setJobId("id1");
         Job job2 = new Job();
         job2.setJobId(job1.getJobId());
         assertThat(job1).isEqualTo(job2);
-        job2.setJobId(2L);
+        job2.setJobId("id2");
         assertThat(job1).isNotEqualTo(job2);
         job1.setJobId(null);
         assertThat(job1).isNotEqualTo(job2);

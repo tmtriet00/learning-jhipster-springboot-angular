@@ -11,11 +11,11 @@ class CountryTest {
     void equalsVerifier() throws Exception {
         TestUtil.equalsVerifier(Country.class);
         Country country1 = new Country();
-        country1.setCountryId(1L);
+        country1.setCountryId("id1");
         Country country2 = new Country();
         country2.setCountryId(country1.getCountryId());
         assertThat(country1).isEqualTo(country2);
-        country2.setCountryId(2L);
+        country2.setCountryId("id2");
         assertThat(country1).isNotEqualTo(country2);
         country1.setCountryId(null);
         assertThat(country1).isNotEqualTo(country2);

@@ -12,17 +12,15 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
  * A Country.
  */
 @Entity
-@Table(name = "country")
+@Table(name = "countries")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Country implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
-    @SequenceGenerator(name = "sequenceGenerator")
     @Column(name = "country_id")
-    private Long countryId;
+    private String countryId;
 
     @Column(name = "country_name")
     private String countryName;
@@ -33,21 +31,22 @@ public class Country implements Serializable {
     private Set<Location> locations = new HashSet<>();
 
     @ManyToOne
+    @JoinColumn(name = "region_id")
     @JsonIgnoreProperties(value = { "countries" }, allowSetters = true)
     private Region region;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
-    public Long getCountryId() {
+    public String getCountryId() {
         return this.countryId;
     }
 
-    public Country countryId(Long countryId) {
+    public Country countryId(String countryId) {
         this.setCountryId(countryId);
         return this;
     }
 
-    public void setCountryId(Long countryId) {
+    public void setCountryId(String countryId) {
         this.countryId = countryId;
     }
 
@@ -108,7 +107,8 @@ public class Country implements Serializable {
         return this;
     }
 
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
+    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and
+    // setters here
 
     @Override
     public boolean equals(Object o) {
@@ -123,7 +123,8 @@ public class Country implements Serializable {
 
     @Override
     public int hashCode() {
-        // see https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
+        // see
+        // https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
         return getClass().hashCode();
     }
 
@@ -131,8 +132,8 @@ public class Country implements Serializable {
     @Override
     public String toString() {
         return "Country{" +
-            "countryId=" + getCountryId() +
-            ", countryName='" + getCountryName() + "'" +
-            "}";
+                "countryId=" + getCountryId() +
+                ", countryName='" + getCountryName() + "'" +
+                "}";
     }
 }

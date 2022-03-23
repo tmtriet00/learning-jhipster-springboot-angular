@@ -19,10 +19,8 @@ public class Job implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
-    @SequenceGenerator(name = "sequenceGenerator")
     @Column(name = "job_id")
-    private Long jobId;
+    private String jobId;
 
     @Column(name = "job_title")
     private String jobTitle;
@@ -46,16 +44,16 @@ public class Job implements Serializable {
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
-    public Long getJobId() {
+    public String getJobId() {
         return this.jobId;
     }
 
-    public Job jobId(Long jobId) {
+    public Job jobId(String jobId) {
         this.setJobId(jobId);
         return this;
     }
 
-    public void setJobId(Long jobId) {
+    public void setJobId(String jobId) {
         this.jobId = jobId;
     }
 

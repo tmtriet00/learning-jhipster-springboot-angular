@@ -54,7 +54,7 @@ public class JobResource {
         Job result = jobRepository.save(job);
         return ResponseEntity
             .created(new URI("/api/jobs/" + result.getJobId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getJobId().toString()))
+            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getJobId()))
             .body(result);
     }
 
@@ -69,7 +69,7 @@ public class JobResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/jobs/{jobId}")
-    public ResponseEntity<Job> updateJob(@PathVariable(value = "jobId", required = false) final Long jobId, @RequestBody Job job)
+    public ResponseEntity<Job> updateJob(@PathVariable(value = "jobId", required = false) final String jobId, @RequestBody Job job)
         throws URISyntaxException {
         log.debug("REST request to update Job : {}, {}", jobId, job);
         if (job.getJobId() == null) {
@@ -86,7 +86,7 @@ public class JobResource {
         Job result = jobRepository.save(job);
         return ResponseEntity
             .ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, job.getJobId().toString()))
+            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, job.getJobId()))
             .body(result);
     }
 
@@ -102,7 +102,7 @@ public class JobResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PatchMapping(value = "/jobs/{jobId}", consumes = { "application/json", "application/merge-patch+json" })
-    public ResponseEntity<Job> partialUpdateJob(@PathVariable(value = "jobId", required = false) final Long jobId, @RequestBody Job job)
+    public ResponseEntity<Job> partialUpdateJob(@PathVariable(value = "jobId", required = false) final String jobId, @RequestBody Job job)
         throws URISyntaxException {
         log.debug("REST request to partial update Job partially : {}, {}", jobId, job);
         if (job.getJobId() == null) {
@@ -133,10 +133,7 @@ public class JobResource {
             })
             .map(jobRepository::save);
 
-        return ResponseUtil.wrapOrNotFound(
-            result,
-            HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, job.getJobId().toString())
-        );
+        return ResponseUtil.wrapOrNotFound(result, HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, job.getJobId()));
     }
 
     /**
@@ -157,7 +154,7 @@ public class JobResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the job, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/jobs/{id}")
-    public ResponseEntity<Job> getJob(@PathVariable Long id) {
+    public ResponseEntity<Job> getJob(@PathVariable String id) {
         log.debug("REST request to get Job : {}", id);
         Optional<Job> job = jobRepository.findById(id);
         return ResponseUtil.wrapOrNotFound(job);
@@ -170,12 +167,9 @@ public class JobResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/jobs/{id}")
-    public ResponseEntity<Void> deleteJob(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteJob(@PathVariable String id) {
         log.debug("REST request to delete Job : {}", id);
         jobRepository.deleteById(id);
-        return ResponseEntity
-            .noContent()
-            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
-            .build();
+        return ResponseEntity.noContent().headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id)).build();
     }
 }

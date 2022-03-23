@@ -54,7 +54,7 @@ public class CountryResource {
         Country result = countryRepository.save(country);
         return ResponseEntity
             .created(new URI("/api/countries/" + result.getCountryId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getCountryId().toString()))
+            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getCountryId()))
             .body(result);
     }
 
@@ -70,7 +70,7 @@ public class CountryResource {
      */
     @PutMapping("/countries/{countryId}")
     public ResponseEntity<Country> updateCountry(
-        @PathVariable(value = "countryId", required = false) final Long countryId,
+        @PathVariable(value = "countryId", required = false) final String countryId,
         @RequestBody Country country
     ) throws URISyntaxException {
         log.debug("REST request to update Country : {}, {}", countryId, country);
@@ -88,7 +88,7 @@ public class CountryResource {
         Country result = countryRepository.save(country);
         return ResponseEntity
             .ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, country.getCountryId().toString()))
+            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, country.getCountryId()))
             .body(result);
     }
 
@@ -105,7 +105,7 @@ public class CountryResource {
      */
     @PatchMapping(value = "/countries/{countryId}", consumes = { "application/json", "application/merge-patch+json" })
     public ResponseEntity<Country> partialUpdateCountry(
-        @PathVariable(value = "countryId", required = false) final Long countryId,
+        @PathVariable(value = "countryId", required = false) final String countryId,
         @RequestBody Country country
     ) throws URISyntaxException {
         log.debug("REST request to partial update Country partially : {}, {}", countryId, country);
@@ -133,7 +133,7 @@ public class CountryResource {
 
         return ResponseUtil.wrapOrNotFound(
             result,
-            HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, country.getCountryId().toString())
+            HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, country.getCountryId())
         );
     }
 
@@ -155,7 +155,7 @@ public class CountryResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the country, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/countries/{id}")
-    public ResponseEntity<Country> getCountry(@PathVariable Long id) {
+    public ResponseEntity<Country> getCountry(@PathVariable String id) {
         log.debug("REST request to get Country : {}", id);
         Optional<Country> country = countryRepository.findById(id);
         return ResponseUtil.wrapOrNotFound(country);
@@ -168,12 +168,9 @@ public class CountryResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/countries/{id}")
-    public ResponseEntity<Void> deleteCountry(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteCountry(@PathVariable String id) {
         log.debug("REST request to delete Country : {}", id);
         countryRepository.deleteById(id);
-        return ResponseEntity
-            .noContent()
-            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
-            .build();
+        return ResponseEntity.noContent().headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id)).build();
     }
 }

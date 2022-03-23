@@ -3,7 +3,7 @@
   "fields": [
     {
       "fieldName": "jobId",
-      "fieldType": "Long",
+      "fieldType": "String",
       "options": {
         "id": true
       }

@@ -46,6 +46,7 @@
     "skipCommitHook": true,
     "jwtSecretKey": "OGVjODIxYTAxNDc0OWU3Nzk4ZjU1OTQwNDIxZTlkZmM5OGNhOWY2MzkxZmU5MjA0MGY0MmJiYjU3OGMzY2QzNDY4YTc4NTQ4MmIyZjdjMGQ4YjFjNzUwMDBmZTEyY2Q0NjIzMDZmNmRlOTQ2NjJjOWYxM2ZhZDJkMWQ1MTQ1MjY=",
     "devServerPort": 4201,
-    "nativeLanguage": "en"
+    "nativeLanguage": "en",
+    "entities": []
   }
 }

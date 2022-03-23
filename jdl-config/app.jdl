@@ -44,7 +44,7 @@ entity Employee {
 }
 
 entity Job {
-  @Id JobId Long
+  @Id JobId String
   JobTitle String
   MinSalary Long
   MaxSalary Long
@@ -71,7 +71,7 @@ entity Location {
 }
 
 entity Country {
-  @Id CountryId Long
+  @Id CountryId String
   CountryName String
 }
 

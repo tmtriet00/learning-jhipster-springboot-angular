@@ -11,7 +11,7 @@
     -->
     <changeSet id="20220323223554-1" author="jhipster">
         <createTable tableName="job">
-            <column name="job_id" type="bigint">
+            <column name="job_id" type="varchar(255)">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="job_title" type="varchar(255)">
@@ -43,7 +43,7 @@
                   separator=";"
                   tableName="job"
                   usePreparedStatements="true">
-            <column name="job_id" type="numeric"/>
+            <column name="job_id" type="string"/>
             <column name="job_title" type="string"/>
             <column name="min_salary" type="numeric"/>
             <column name="max_salary" type="numeric"/>

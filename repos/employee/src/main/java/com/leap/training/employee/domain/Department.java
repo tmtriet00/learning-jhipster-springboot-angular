@@ -39,11 +39,13 @@ public class Department implements Serializable {
     private Set<JobHistory> jobHistories = new HashSet<>();
 
     @ManyToOne
+    @JoinColumn(name = "manager_id")
     @JsonIgnoreProperties(value = { "subEmployees", "managedDepartments", "job", "manager",
             "department" }, allowSetters = true)
     private Employee manager;
 
     @ManyToOne
+    @JoinColumn(name = "location_id")
     @JsonIgnoreProperties(value = { "departments", "country" }, allowSetters = true)
     private Location location;
 

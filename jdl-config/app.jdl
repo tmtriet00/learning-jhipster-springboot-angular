@@ -15,6 +15,9 @@ application {
   entities Employee, Job, JobHistory, Department, Location, Country, Region
 }
 
+paginate * with pagination
+service * with serviceClass
+
 application {
   config {
     baseName gateway

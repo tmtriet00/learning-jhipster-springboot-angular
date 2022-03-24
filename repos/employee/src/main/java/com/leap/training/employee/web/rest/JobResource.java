@@ -2,6 +2,7 @@ package com.leap.training.employee.web.rest;
 
 import com.leap.training.employee.domain.Job;
 import com.leap.training.employee.repository.JobRepository;
+import com.leap.training.employee.service.JobService;
 import com.leap.training.employee.web.rest.errors.BadRequestAlertException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -11,10 +12,15 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
+import tech.jhipster.web.util.PaginationUtil;
 import tech.jhipster.web.util.ResponseUtil;
 
 /**
@@ -22,7 +28,6 @@ import tech.jhipster.web.util.ResponseUtil;
  */
 @RestController
 @RequestMapping("/api")
-@Transactional
 public class JobResource {
 
     private final Logger log = LoggerFactory.getLogger(JobResource.class);
@@ -32,9 +37,12 @@ public class JobResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
+    private final JobService jobService;
+
     private final JobRepository jobRepository;
 
-    public JobResource(JobRepository jobRepository) {
+    public JobResource(JobService jobService, JobRepository jobRepository) {
+        this.jobService = jobService;
         this.jobRepository = jobRepository;
     }
 
@@ -51,7 +59,7 @@ public class JobResource {
         if (job.getJobId() != null) {
             throw new BadRequestAlertException("A new job cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        Job result = jobRepository.save(job);
+        Job result = jobService.save(job);
         return ResponseEntity
             .created(new URI("/api/jobs/" + result.getJobId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getJobId()))
@@ -83,7 +91,7 @@ public class JobResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        Job result = jobRepository.save(job);
+        Job result = jobService.save(job);
         return ResponseEntity
             .ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, job.getJobId()))
@@ -116,22 +124,7 @@ public class JobResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        Optional<Job> result = jobRepository
-            .findById(job.getJobId())
-            .map(existingJob -> {
-                if (job.getJobTitle() != null) {
-                    existingJob.setJobTitle(job.getJobTitle());
-                }
-                if (job.getMinSalary() != null) {
-                    existingJob.setMinSalary(job.getMinSalary());
-                }
-                if (job.getMaxSalary() != null) {
-                    existingJob.setMaxSalary(job.getMaxSalary());
-                }
-
-                return existingJob;
-            })
-            .map(jobRepository::save);
+        Optional<Job> result = jobService.partialUpdate(job);
 
         return ResponseUtil.wrapOrNotFound(result, HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, job.getJobId()));
     }
@@ -139,12 +132,15 @@ public class JobResource {
     /**
      * {@code GET  /jobs} : get all the jobs.
      *
+     * @param pageable the pagination information.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of jobs in body.
      */
     @GetMapping("/jobs")
-    public List<Job> getAllJobs() {
-        log.debug("REST request to get all Jobs");
-        return jobRepository.findAll();
+    public ResponseEntity<List<Job>> getAllJobs(Pageable pageable) {
+        log.debug("REST request to get a page of Jobs");
+        Page<Job> page = jobService.findAll(pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
     /**
@@ -156,7 +152,7 @@ public class JobResource {
     @GetMapping("/jobs/{id}")
     public ResponseEntity<Job> getJob(@PathVariable String id) {
         log.debug("REST request to get Job : {}", id);
-        Optional<Job> job = jobRepository.findById(id);
+        Optional<Job> job = jobService.findOne(id);
         return ResponseUtil.wrapOrNotFound(job);
     }
 
@@ -169,7 +165,7 @@ public class JobResource {
     @DeleteMapping("/jobs/{id}")
     public ResponseEntity<Void> deleteJob(@PathVariable String id) {
         log.debug("REST request to delete Job : {}", id);
-        jobRepository.deleteById(id);
+        jobService.delete(id);
         return ResponseEntity.noContent().headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id)).build();
     }
 }

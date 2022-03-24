@@ -2,6 +2,7 @@ package com.leap.training.employee.web.rest;
 
 import com.leap.training.employee.domain.Region;
 import com.leap.training.employee.repository.RegionRepository;
+import com.leap.training.employee.service.RegionService;
 import com.leap.training.employee.web.rest.errors.BadRequestAlertException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -11,10 +12,15 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
+import tech.jhipster.web.util.PaginationUtil;
 import tech.jhipster.web.util.ResponseUtil;
 
 /**
@@ -22,7 +28,6 @@ import tech.jhipster.web.util.ResponseUtil;
  */
 @RestController
 @RequestMapping("/api")
-@Transactional
 public class RegionResource {
 
     private final Logger log = LoggerFactory.getLogger(RegionResource.class);
@@ -32,9 +37,12 @@ public class RegionResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
+    private final RegionService regionService;
+
     private final RegionRepository regionRepository;
 
-    public RegionResource(RegionRepository regionRepository) {
+    public RegionResource(RegionService regionService, RegionRepository regionRepository) {
+        this.regionService = regionService;
         this.regionRepository = regionRepository;
     }
 
@@ -51,7 +59,7 @@ public class RegionResource {
         if (region.getRegionId() != null) {
             throw new BadRequestAlertException("A new region cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        Region result = regionRepository.save(region);
+        Region result = regionService.save(region);
         return ResponseEntity
             .created(new URI("/api/regions/" + result.getRegionId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getRegionId().toString()))
@@ -85,7 +93,7 @@ public class RegionResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        Region result = regionRepository.save(region);
+        Region result = regionService.save(region);
         return ResponseEntity
             .ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, region.getRegionId().toString()))
@@ -120,16 +128,7 @@ public class RegionResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        Optional<Region> result = regionRepository
-            .findById(region.getRegionId())
-            .map(existingRegion -> {
-                if (region.getRegionName() != null) {
-                    existingRegion.setRegionName(region.getRegionName());
-                }
-
-                return existingRegion;
-            })
-            .map(regionRepository::save);
+        Optional<Region> result = regionService.partialUpdate(region);
 
         return ResponseUtil.wrapOrNotFound(
             result,
@@ -140,12 +139,15 @@ public class RegionResource {
     /**
      * {@code GET  /regions} : get all the regions.
      *
+     * @param pageable the pagination information.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of regions in body.
      */
     @GetMapping("/regions")
-    public List<Region> getAllRegions() {
-        log.debug("REST request to get all Regions");
-        return regionRepository.findAll();
+    public ResponseEntity<List<Region>> getAllRegions(Pageable pageable) {
+        log.debug("REST request to get a page of Regions");
+        Page<Region> page = regionService.findAll(pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
     /**
@@ -157,7 +159,7 @@ public class RegionResource {
     @GetMapping("/regions/{id}")
     public ResponseEntity<Region> getRegion(@PathVariable Long id) {
         log.debug("REST request to get Region : {}", id);
-        Optional<Region> region = regionRepository.findById(id);
+        Optional<Region> region = regionService.findOne(id);
         return ResponseUtil.wrapOrNotFound(region);
     }
 
@@ -170,7 +172,7 @@ public class RegionResource {
     @DeleteMapping("/regions/{id}")
     public ResponseEntity<Void> deleteRegion(@PathVariable Long id) {
         log.debug("REST request to delete Region : {}", id);
-        regionRepository.deleteById(id);
+        regionService.delete(id);
         return ResponseEntity
             .noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))

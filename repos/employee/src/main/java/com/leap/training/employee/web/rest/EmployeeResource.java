@@ -2,6 +2,7 @@ package com.leap.training.employee.web.rest;
 
 import com.leap.training.employee.domain.Employee;
 import com.leap.training.employee.repository.EmployeeRepository;
+import com.leap.training.employee.service.EmployeeService;
 import com.leap.training.employee.web.rest.errors.BadRequestAlertException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -11,10 +12,15 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
+import tech.jhipster.web.util.PaginationUtil;
 import tech.jhipster.web.util.ResponseUtil;
 
 /**
@@ -22,7 +28,6 @@ import tech.jhipster.web.util.ResponseUtil;
  */
 @RestController
 @RequestMapping("/api")
-@Transactional
 public class EmployeeResource {
 
     private final Logger log = LoggerFactory.getLogger(EmployeeResource.class);
@@ -32,9 +37,12 @@ public class EmployeeResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
+    private final EmployeeService employeeService;
+
     private final EmployeeRepository employeeRepository;
 
-    public EmployeeResource(EmployeeRepository employeeRepository) {
+    public EmployeeResource(EmployeeService employeeService, EmployeeRepository employeeRepository) {
+        this.employeeService = employeeService;
         this.employeeRepository = employeeRepository;
     }
 
@@ -51,7 +59,7 @@ public class EmployeeResource {
         if (employee.getEmployeeId() != null) {
             throw new BadRequestAlertException("A new employee cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        Employee result = employeeRepository.save(employee);
+        Employee result = employeeService.save(employee);
         return ResponseEntity
             .created(new URI("/api/employees/" + result.getEmployeeId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getEmployeeId().toString()))
@@ -85,7 +93,7 @@ public class EmployeeResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        Employee result = employeeRepository.save(employee);
+        Employee result = employeeService.save(employee);
         return ResponseEntity
             .ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, employee.getEmployeeId().toString()))
@@ -120,34 +128,7 @@ public class EmployeeResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        Optional<Employee> result = employeeRepository
-            .findById(employee.getEmployeeId())
-            .map(existingEmployee -> {
-                if (employee.getFirstName() != null) {
-                    existingEmployee.setFirstName(employee.getFirstName());
-                }
-                if (employee.getLastName() != null) {
-                    existingEmployee.setLastName(employee.getLastName());
-                }
-                if (employee.getEmail() != null) {
-                    existingEmployee.setEmail(employee.getEmail());
-                }
-                if (employee.getPhoneNumber() != null) {
-                    existingEmployee.setPhoneNumber(employee.getPhoneNumber());
-                }
-                if (employee.getHireDate() != null) {
-                    existingEmployee.setHireDate(employee.getHireDate());
-                }
-                if (employee.getSalary() != null) {
-                    existingEmployee.setSalary(employee.getSalary());
-                }
-                if (employee.getCommissionPct() != null) {
-                    existingEmployee.setCommissionPct(employee.getCommissionPct());
-                }
-
-                return existingEmployee;
-            })
-            .map(employeeRepository::save);
+        Optional<Employee> result = employeeService.partialUpdate(employee);
 
         return ResponseUtil.wrapOrNotFound(
             result,
@@ -158,12 +139,15 @@ public class EmployeeResource {
     /**
      * {@code GET  /employees} : get all the employees.
      *
+     * @param pageable the pagination information.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of employees in body.
      */
     @GetMapping("/employees")
-    public List<Employee> getAllEmployees() {
-        log.debug("REST request to get all Employees");
-        return employeeRepository.findAll();
+    public ResponseEntity<List<Employee>> getAllEmployees(Pageable pageable) {
+        log.debug("REST request to get a page of Employees");
+        Page<Employee> page = employeeService.findAll(pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
     /**
@@ -175,7 +159,7 @@ public class EmployeeResource {
     @GetMapping("/employees/{id}")
     public ResponseEntity<Employee> getEmployee(@PathVariable Long id) {
         log.debug("REST request to get Employee : {}", id);
-        Optional<Employee> employee = employeeRepository.findById(id);
+        Optional<Employee> employee = employeeService.findOne(id);
         return ResponseUtil.wrapOrNotFound(employee);
     }
 
@@ -188,7 +172,7 @@ public class EmployeeResource {
     @DeleteMapping("/employees/{id}")
     public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
         log.debug("REST request to delete Employee : {}", id);
-        employeeRepository.deleteById(id);
+        employeeService.delete(id);
         return ResponseEntity
             .noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))

@@ -2,6 +2,7 @@ package com.leap.training.employee.web.rest;
 
 import com.leap.training.employee.domain.JobHistory;
 import com.leap.training.employee.repository.JobHistoryRepository;
+import com.leap.training.employee.service.JobHistoryService;
 import com.leap.training.employee.web.rest.errors.BadRequestAlertException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -11,10 +12,15 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
+import tech.jhipster.web.util.PaginationUtil;
 import tech.jhipster.web.util.ResponseUtil;
 
 /**
@@ -22,7 +28,6 @@ import tech.jhipster.web.util.ResponseUtil;
  */
 @RestController
 @RequestMapping("/api")
-@Transactional
 public class JobHistoryResource {
 
     private final Logger log = LoggerFactory.getLogger(JobHistoryResource.class);
@@ -32,9 +37,12 @@ public class JobHistoryResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
+    private final JobHistoryService jobHistoryService;
+
     private final JobHistoryRepository jobHistoryRepository;
 
-    public JobHistoryResource(JobHistoryRepository jobHistoryRepository) {
+    public JobHistoryResource(JobHistoryService jobHistoryService, JobHistoryRepository jobHistoryRepository) {
+        this.jobHistoryService = jobHistoryService;
         this.jobHistoryRepository = jobHistoryRepository;
     }
 
@@ -51,7 +59,7 @@ public class JobHistoryResource {
         if (jobHistory.getId() != null) {
             throw new BadRequestAlertException("A new jobHistory cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        JobHistory result = jobHistoryRepository.save(jobHistory);
+        JobHistory result = jobHistoryService.save(jobHistory);
         return ResponseEntity
             .created(new URI("/api/job-histories/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
@@ -85,7 +93,7 @@ public class JobHistoryResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        JobHistory result = jobHistoryRepository.save(jobHistory);
+        JobHistory result = jobHistoryService.save(jobHistory);
         return ResponseEntity
             .ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, jobHistory.getId().toString()))
@@ -120,22 +128,7 @@ public class JobHistoryResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        Optional<JobHistory> result = jobHistoryRepository
-            .findById(jobHistory.getId())
-            .map(existingJobHistory -> {
-                if (jobHistory.getEmployeeId() != null) {
-                    existingJobHistory.setEmployeeId(jobHistory.getEmployeeId());
-                }
-                if (jobHistory.getStartDate() != null) {
-                    existingJobHistory.setStartDate(jobHistory.getStartDate());
-                }
-                if (jobHistory.getEndDate() != null) {
-                    existingJobHistory.setEndDate(jobHistory.getEndDate());
-                }
-
-                return existingJobHistory;
-            })
-            .map(jobHistoryRepository::save);
+        Optional<JobHistory> result = jobHistoryService.partialUpdate(jobHistory);
 
         return ResponseUtil.wrapOrNotFound(
             result,
@@ -146,12 +139,15 @@ public class JobHistoryResource {
     /**
      * {@code GET  /job-histories} : get all the jobHistories.
      *
+     * @param pageable the pagination information.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of jobHistories in body.
      */
     @GetMapping("/job-histories")
-    public List<JobHistory> getAllJobHistories() {
-        log.debug("REST request to get all JobHistories");
-        return jobHistoryRepository.findAll();
+    public ResponseEntity<List<JobHistory>> getAllJobHistories(Pageable pageable) {
+        log.debug("REST request to get a page of JobHistories");
+        Page<JobHistory> page = jobHistoryService.findAll(pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
     /**
@@ -163,7 +159,7 @@ public class JobHistoryResource {
     @GetMapping("/job-histories/{id}")
     public ResponseEntity<JobHistory> getJobHistory(@PathVariable Long id) {
         log.debug("REST request to get JobHistory : {}", id);
-        Optional<JobHistory> jobHistory = jobHistoryRepository.findById(id);
+        Optional<JobHistory> jobHistory = jobHistoryService.findOne(id);
         return ResponseUtil.wrapOrNotFound(jobHistory);
     }
 
@@ -176,7 +172,7 @@ public class JobHistoryResource {
     @DeleteMapping("/job-histories/{id}")
     public ResponseEntity<Void> deleteJobHistory(@PathVariable Long id) {
         log.debug("REST request to delete JobHistory : {}", id);
-        jobHistoryRepository.deleteById(id);
+        jobHistoryService.delete(id);
         return ResponseEntity
             .noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))

@@ -2,6 +2,7 @@ package com.leap.training.employee.web.rest;
 
 import com.leap.training.employee.domain.Department;
 import com.leap.training.employee.repository.DepartmentRepository;
+import com.leap.training.employee.service.DepartmentService;
 import com.leap.training.employee.web.rest.errors.BadRequestAlertException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -11,10 +12,15 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
+import tech.jhipster.web.util.PaginationUtil;
 import tech.jhipster.web.util.ResponseUtil;
 
 /**
@@ -22,7 +28,6 @@ import tech.jhipster.web.util.ResponseUtil;
  */
 @RestController
 @RequestMapping("/api")
-@Transactional
 public class DepartmentResource {
 
     private final Logger log = LoggerFactory.getLogger(DepartmentResource.class);
@@ -32,9 +37,12 @@ public class DepartmentResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
+    private final DepartmentService departmentService;
+
     private final DepartmentRepository departmentRepository;
 
-    public DepartmentResource(DepartmentRepository departmentRepository) {
+    public DepartmentResource(DepartmentService departmentService, DepartmentRepository departmentRepository) {
+        this.departmentService = departmentService;
         this.departmentRepository = departmentRepository;
     }
 
@@ -51,7 +59,7 @@ public class DepartmentResource {
         if (department.getDepartmentId() != null) {
             throw new BadRequestAlertException("A new department cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        Department result = departmentRepository.save(department);
+        Department result = departmentService.save(department);
         return ResponseEntity
             .created(new URI("/api/departments/" + result.getDepartmentId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getDepartmentId().toString()))
@@ -85,7 +93,7 @@ public class DepartmentResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        Department result = departmentRepository.save(department);
+        Department result = departmentService.save(department);
         return ResponseEntity
             .ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, department.getDepartmentId().toString()))
@@ -120,16 +128,7 @@ public class DepartmentResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        Optional<Department> result = departmentRepository
-            .findById(department.getDepartmentId())
-            .map(existingDepartment -> {
-                if (department.getDepartmentName() != null) {
-                    existingDepartment.setDepartmentName(department.getDepartmentName());
-                }
-
-                return existingDepartment;
-            })
-            .map(departmentRepository::save);
+        Optional<Department> result = departmentService.partialUpdate(department);
 
         return ResponseUtil.wrapOrNotFound(
             result,
@@ -140,12 +139,15 @@ public class DepartmentResource {
     /**
      * {@code GET  /departments} : get all the departments.
      *
+     * @param pageable the pagination information.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of departments in body.
      */
     @GetMapping("/departments")
-    public List<Department> getAllDepartments() {
-        log.debug("REST request to get all Departments");
-        return departmentRepository.findAll();
+    public ResponseEntity<List<Department>> getAllDepartments(Pageable pageable) {
+        log.debug("REST request to get a page of Departments");
+        Page<Department> page = departmentService.findAll(pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
     /**
@@ -157,7 +159,7 @@ public class DepartmentResource {
     @GetMapping("/departments/{id}")
     public ResponseEntity<Department> getDepartment(@PathVariable Long id) {
         log.debug("REST request to get Department : {}", id);
-        Optional<Department> department = departmentRepository.findById(id);
+        Optional<Department> department = departmentService.findOne(id);
         return ResponseUtil.wrapOrNotFound(department);
     }
 
@@ -170,7 +172,7 @@ public class DepartmentResource {
     @DeleteMapping("/departments/{id}")
     public ResponseEntity<Void> deleteDepartment(@PathVariable Long id) {
         log.debug("REST request to delete Department : {}", id);
-        departmentRepository.deleteById(id);
+        departmentService.delete(id);
         return ResponseEntity
             .noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
